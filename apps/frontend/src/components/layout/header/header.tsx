@@ -1,13 +1,23 @@
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import Image from "next/image"
+import Link from "next/link"
 
 export function Header() {
   return (
-    <header className="fixed top-0 z-50 w-full border-b-1">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <span className="text-2xl font-bold">Logo</span>
+    <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-9">
+        <div className="flex h-20 items-center justify-between">
+          <Link href="/">
+            <Image
+              src="/creattive-logo.png"
+              alt="Creattive"
+              width={180}
+              height={60}
+              className="mx-0"
+            />
+          </Link>
 
-          <nav className="flex items-center gap-6">
+          <nav className="px-5">
             <ThemeToggle />
           </nav>
         </div>

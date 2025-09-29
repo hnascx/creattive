@@ -7,26 +7,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-body {
-  transition: background-color 0.5s ease, color 0.5s ease;
-}
-
-[class*="bg-"],
-[class*="text-"],
-[class*="border-"],
-[class*="fill-"],
-[class*="stroke-"] {
-  transition: background-color 0.5s ease, color 0.5s ease,
-    border-color 0.5s ease, fill 0.5s ease, stroke 0.5s ease;
-}
-
-button,
-[role="button"],
-.btn {
-  transition: background-color 0.175s ease, color 0.175s ease,
-    border-color 0.175s ease, box-shadow 0.175s ease !important;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
