@@ -1,11 +1,12 @@
 import { env } from "./config/env"
 import { buildServer } from "./config/server"
+import { authRoutes } from "./routes/auth.routes"
 
 async function start() {
   try {
     const server = await buildServer()
 
-    // Registrar rotas aqui posteriormente
+    await server.register(authRoutes)
 
     await server.listen({ port: env.PORT, host: "0.0.0.0" })
 
