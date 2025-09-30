@@ -3,6 +3,7 @@ import { buildServer } from "./config/server"
 import { authRoutes } from "./routes/auth.routes"
 import { categoryRoutes } from "./routes/category.routes"
 import { productRoutes } from "./routes/product.routes"
+import { uploadRoutes } from "./routes/upload.routes"
 
 async function start() {
   try {
@@ -11,6 +12,7 @@ async function start() {
     await server.register(authRoutes)
     await server.register(categoryRoutes)
     await server.register(productRoutes)
+    await server.register(uploadRoutes)
 
     await server.listen({ port: env.PORT, host: "0.0.0.0" })
 

@@ -2,10 +2,13 @@ import { Prisma } from "@prisma/client"
 import { FastifyReply, FastifyRequest } from "fastify"
 import fs from "fs/promises"
 import path from "path"
+import { z } from "zod"
 import { prisma } from "../config/database"
 import { env } from "../config/env"
-import { createProductSchema, updateProductSchema } from "../schemas/product.schema"
-import { z } from "zod"
+import {
+  createProductSchema,
+  updateProductSchema,
+} from "../schemas/product.schema"
 
 export async function listProducts(
   request: FastifyRequest<{

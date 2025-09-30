@@ -2,13 +2,17 @@ import cors from "@fastify/cors"
 import multipart from "@fastify/multipart"
 import staticFiles from "@fastify/static"
 import Fastify from "fastify"
+import fs from "fs/promises"
 import path from "path"
 import { env } from "./env"
 
 export async function buildServer() {
   const server = Fastify({
-    logger: false, // Desabilita todos os logs do Fastify
+    logger: false,
   })
+
+  const uploadDir = path.resolve(env.UPLOAD_PATH)
+  await fs.mkdir(uploadDir, { recursive: true })
 
   await server.register(cors, {
     origin: [env.FRONTEND_URL],
@@ -19,12 +23,13 @@ export async function buildServer() {
 
   await server.register(multipart, {
     limits: {
-      fileSize: env.MAX_FILE_SIZE,
+      fileSize: env.MAX_FILE_SIZE, // 2MB
     },
+    attachFieldsToBody: false, 
   })
 
   await server.register(staticFiles, {
-    root: path.join(__dirname, "../../..", env.UPLOAD_PATH),
+    root: uploadDir,
     prefix: "/uploads/",
   })
 
