@@ -1,6 +1,7 @@
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import Image from "next/image"
 import Link from "next/link"
+import { ActiveLink } from "../active-link"
 
 export function Header() {
   return (
@@ -17,7 +18,9 @@ export function Header() {
             />
           </Link>
 
-          <nav className="px-5">
+          <nav className="flex items-center gap-4 px-5">
+            <ActiveLink href="/">Produtos</ActiveLink>
+            <ActiveLink href="/categories">Categorias</ActiveLink>
             <ThemeToggle />
           </nav>
         </div>

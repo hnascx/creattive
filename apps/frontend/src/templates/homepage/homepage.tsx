@@ -1,4 +1,4 @@
-import { Search } from "../components/layout/search"
+import { Search } from "../../components/layout/search"
 import { Products } from "./sections"
 
 export function Homepage() {
