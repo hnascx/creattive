@@ -9,10 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 import { categoryService } from "@/services/category.service"
-import { Product, productService } from "@/services/product.service"
+import {
+  Product,
+  ProductInput,
+  productService,
+} from "@/services/product.service"
+import { Loader2 } from "lucide-react"
 import Image from "next/image"
 import { FormEvent, useEffect, useState } from "react"
+import CurrencyInput from "react-currency-input-field"
 import { toast } from "sonner"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
@@ -34,9 +41,11 @@ export function ProductForm({
   const [expiryDate, setExpiryDate] = useState(
     product?.expiryDate?.split("T")[0] || ""
   )
-  const [categoryIds, setCategoryIds] = useState<string[]>(
-    product?.categories ? [product.categories[0].id] : []
-  )
+  const [categoryIds, setCategoryIds] = useState<string[]>(() => {
+    if (!product?.categories?.length) return []
+    const validCategories = product.categories.filter((c) => c && c.id)
+    return validCategories.length ? [validCategories[0].id] : []
+  })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState(
     product?.imagePath
@@ -46,6 +55,7 @@ export function ProductForm({
       : ""
   )
   const [loading, setLoading] = useState(false)
+  const [creating, setCreating] = useState(false)
   const [categories, setCategories] = useState<
     Array<{ id: string; name: string }>
   >([])
@@ -110,15 +120,10 @@ export function ProductForm({
       return
     }
 
-    setLoading(true)
-
     try {
-      let imageUrl = product?.imagePath
-        ? product.imagePath.startsWith("http")
-          ? product.imagePath
-          : `${API_URL}/${product.imagePath}`
-        : ""
+      let imageUrl = ""
 
+      // Só tenta fazer upload se houver um arquivo selecionado
       if (imageFile) {
         const formData = new FormData()
         formData.append("file", imageFile)
@@ -139,33 +144,74 @@ export function ProductForm({
         console.log("Resposta do upload:", uploadData)
 
         if (uploadData.success && uploadData.data) {
-          imageUrl = `${API_URL}${uploadData.data.imageUrl}`
+          // Garantir que a URL seja completa
+          imageUrl = uploadData.data.imageUrl.startsWith("http")
+            ? uploadData.data.imageUrl
+            : `${API_URL}/${uploadData.data.imageUrl}`
         } else {
           throw new Error("Formato de resposta do upload inválido")
         }
+      } else if (product?.imagePath) {
+        // Garantir que a URL seja completa para atualização também
+        imageUrl = product.imagePath.startsWith("http")
+          ? product.imagePath
+          : `${API_URL}/${product.imagePath}`
       }
 
-      const productData = {
-        name,
-        description,
-        price: Number(price),
+      // Validação extra dos dados antes do envio
+      const priceValue = Number(
+        price
+          .replace(/[R$\s.]/g, "") // Remove R$, espaços e pontos
+          .replace(",", ".") // Substitui vírgula por ponto para o JavaScript entender
+      )
+
+      if (isNaN(priceValue)) {
+        throw new Error("Preço inválido")
+      }
+
+      // Validar se a URL da imagem está completa
+      if (!imageUrl.startsWith("http")) {
+        throw new Error("URL da imagem inválida")
+      }
+
+      const productData: ProductInput = {
+        name: name.trim(),
+        description: description.trim(),
+        price: priceValue,
         expiryDate,
         categoryIds,
         imageUrl,
       }
 
-      console.log("Dados finais do produto:", productData)
+      console.log("Dados enviados para criação:", productData)
 
       if (product) {
+        setLoading(true)
         await productService.update(product.id, productData)
+
+        await new Promise((resolve) => setTimeout(resolve, 2000))
         toast.success("Produto atualizado com sucesso")
+
+        setLoading(false)
+        onSuccess()
       } else {
-        await productService.create(productData)
+        setCreating(true)
+        const response = await productService.create(productData)
+        console.log("Resposta da criação:", response)
+
+        await new Promise((resolve) => setTimeout(resolve, 2000))
         toast.success("Produto criado com sucesso")
+
+        setCreating(false)
+        onSuccess()
       }
-      onSuccess()
     } catch (error: any) {
-      console.error("Erro detalhado:", error)
+      console.error("Erro completo:", {
+        message: error.message,
+        response: error.response?.data,
+        data: error.response?.data?.errors,
+        status: error.response?.status,
+      })
       const message =
         error.response?.data?.message ||
         error.message ||
@@ -173,6 +219,7 @@ export function ProductForm({
       toast.error(message)
     } finally {
       setLoading(false)
+      setCreating(false)
     }
   }
 
@@ -187,6 +234,8 @@ export function ProductForm({
           required
           minLength={2}
           maxLength={100}
+          className="mt-2"
+          placeholder="Digite o nome do produto"
         />
       </div>
 
@@ -199,19 +248,28 @@ export function ProductForm({
           required
           minLength={10}
           maxLength={500}
+          className="mt-2"
+          placeholder="Digite a descrição do produto"
         />
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="price">Preço</label>
-        <Input
+        <label htmlFor="price">Valor</label>
+        <CurrencyInput
           id="price"
-          type="number"
-          step="0.01"
-          min="0"
+          className={cn(
+            "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm mt-2",
+            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+            "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+          )}
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          onValueChange={(value) => setPrice(value || "")}
           required
+          prefix="R$ "
+          decimalsLimit={2}
+          decimalSeparator=","
+          groupSeparator="."
+          placeholder="Digite o valor do produto"
         />
       </div>
 
@@ -224,6 +282,7 @@ export function ProductForm({
           onChange={(e) => setExpiryDate(e.target.value)}
           required
           min={new Date().toISOString().split("T")[0]}
+          className="mt-2"
         />
       </div>
 
@@ -232,8 +291,9 @@ export function ProductForm({
         <Select
           value={categoryIds[0]}
           onValueChange={(value) => setCategoryIds([value])}
+          required
         >
-          <SelectTrigger>
+          <SelectTrigger className="mt-2 w-full">
             <SelectValue placeholder="Selecione uma categoria" />
           </SelectTrigger>
           <SelectContent>
@@ -247,15 +307,32 @@ export function ProductForm({
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="image">Imagem</label>
-        <Input
-          id="image"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handleImageSelect}
-        />
+        <label htmlFor="image">
+          Imagem<span className="ml-1 text-xs text-red-400">(Campo obrigatório)</span>
+        </label>
+        <div className="relative flex items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => document.getElementById("image")?.click()}
+            className="min-w-[120px] bg-zinc-200 hover:bg-zinc-300 text-black mt-2"
+          >
+            Selecionar Arquivo
+          </Button>
+          <span className="text-sm text-muted-foreground mt-2">
+            {imageFile ? imageFile.name : "Nenhum arquivo selecionado"}
+          </span>
+          <Input
+            id="image"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleImageSelect}
+            className="hidden"
+            required={!product?.imagePath}
+          />
+        </div>
         {imagePreview && (
-          <div className="mt-2">
+          <div className="mt-4">
             <Image
               src={imagePreview}
               alt="Preview"
@@ -271,8 +348,26 @@ export function ProductForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={loading}>
-          {loading ? "Salvando..." : product ? "Atualizar" : "Criar"}
+        <Button
+          type="submit"
+          disabled={loading || creating}
+          className="min-w-[100px]"
+        >
+          {loading ? (
+            <>
+              Salvando
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </>
+          ) : creating ? (
+            <>
+              Criando
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </>
+          ) : product ? (
+            "Atualizar"
+          ) : (
+            "Criar"
+          )}
         </Button>
       </div>
     </form>

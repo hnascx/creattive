@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import {
   Table,
   TableBody,
@@ -12,25 +13,27 @@ import {
 import { Product, productService } from "@/services/product.service"
 import { Trash2 } from "lucide-react"
 import Image from "next/image"
+import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { ProductDialog } from "../product-dialog"
 
-// Constante para a URL base do backend
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
 export function ProductList() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     loadProducts()
-  }, [])
+  }, [searchParams])
 
   async function loadProducts() {
     try {
-      const data = await productService.list()
-      console.log("Produtos carregados:", data)
+      const search = searchParams.get("search") ?? undefined
+      const data = await productService.list({ search })
       setProducts(data.items)
     } catch (error) {
       console.error("Erro ao carregar produtos:", error)
@@ -51,6 +54,13 @@ export function ProductList() {
     }
   }
 
+  function getImageUrl(imagePath: string | undefined | null) {
+    if (!imagePath) return null
+
+    // Substitui todas as ocorrências de barras duplicadas por uma única barra
+    return imagePath.replace(/([^:]\/)\/+/g, "$1")
+  }
+
   if (loading) {
     return <div>Carregando...</div>
   }
@@ -64,7 +74,7 @@ export function ProductList() {
 
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-transparent">
             <TableHead>Imagem</TableHead>
             <TableHead>Nome</TableHead>
             <TableHead>Descrição</TableHead>
@@ -87,11 +97,7 @@ export function ProductList() {
                 <TableCell>
                   {product.imagePath && (
                     <Image
-                      src={
-                        product.imagePath.startsWith("http")
-                          ? product.imagePath
-                          : `${API_URL}/${product.imagePath}`
-                      }
+                      src={getImageUrl(product.imagePath) || ""}
                       alt={product.name}
                       width={50}
                       height={50}
@@ -109,7 +115,13 @@ export function ProductList() {
                   }).format(Number(product.price))}
                 </TableCell>
                 <TableCell>
-                  {new Date(product.expiryDate).toLocaleDateString()}
+                  {new Date(
+                    new Date(product.expiryDate).getTime() + 86400000
+                  ).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })}
                 </TableCell>
                 <TableCell>
                   {product.categories?.length > 0
@@ -129,7 +141,7 @@ export function ProductList() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDelete(product.id)}
+                      onClick={() => setDeleteId(product.id)}
                     >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
@@ -140,6 +152,18 @@ export function ProductList() {
           )}
         </TableBody>
       </Table>
+
+      <ConfirmDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        onConfirm={async () => {
+          if (deleteId) {
+            await handleDelete(deleteId)
+          }
+        }}
+        title="Excluir produto"
+        description="Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita."
+      />
     </div>
   )
 }

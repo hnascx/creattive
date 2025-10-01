@@ -1,6 +1,8 @@
+// apps/frontend/src/components/layout/category-list/category-list.tsx
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import {
   Table,
   TableBody,
@@ -11,6 +13,7 @@ import {
 } from "@/components/ui/table"
 import { Category, categoryService } from "@/services/category.service"
 import { Trash2 } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { CategoryDialog } from "../category-dialog"
@@ -18,17 +21,22 @@ import { CategoryDialog } from "../category-dialog"
 export function CategoryList() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     loadCategories()
-  }, [])
+  }, [searchParams])
 
   async function loadCategories() {
     try {
-      const data = await categoryService.list()
+      const search = searchParams.get("search") ?? undefined
+      const data = await categoryService.list({ search })
       setCategories(data)
     } catch (error) {
+      console.error("Erro ao carregar categorias:", error)
       toast.error("Erro ao carregar categorias")
+      setCategories([])
     } finally {
       setLoading(false)
     }
@@ -57,35 +65,55 @@ export function CategoryList() {
 
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-transparent">
             <TableHead>Nome</TableHead>
-            <TableHead className="w-[100px] text-right">Ações</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {categories.map((category) => (
-            <TableRow key={category.id}>
-              <TableCell>{category.name}</TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <CategoryDialog
-                    category={category}
-                    onSuccess={loadCategories}
-                    mode="edit"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(category.id)}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
-                </div>
+          {categories.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={2} className="text-center py-4">
+                Nenhuma categoria encontrada
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            categories.map((category) => (
+              <TableRow key={category.id}>
+                <TableCell>{category.name}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <CategoryDialog
+                      category={category}
+                      onSuccess={loadCategories}
+                      mode="edit"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeleteId(category.id)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
+
+      <ConfirmDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        onConfirm={async () => {
+          if (deleteId) {
+            await handleDelete(deleteId)
+          }
+        }}
+        title="Excluir categoria"
+        description="Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita."
+      />
     </div>
   )
 }

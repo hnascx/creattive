@@ -3,10 +3,26 @@ import { FastifyReply, FastifyRequest } from "fastify"
 import { prisma } from "../config/database"
 
 export async function listCategories(
-  request: FastifyRequest,
+  request: FastifyRequest<{
+    Querystring: {
+      search?: string
+    }
+  }>,
   reply: FastifyReply
 ) {
+  const search = request.query.search?.trim()
+
+  const where = search
+    ? {
+        name: {
+          contains: search,
+          mode: "insensitive" as Prisma.QueryMode,
+        },
+      }
+    : {}
+
   const categories = await prisma.category.findMany({
+    where,
     orderBy: { name: "asc" },
   })
 

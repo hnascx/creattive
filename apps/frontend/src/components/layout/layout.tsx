@@ -1,14 +1,16 @@
+"use client"
+
+import { usePathname } from "next/navigation"
 import { Header } from "./header"
 
-type LayoutProps = {
-  children: React.ReactNode
-}
+export function Layout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const isLoginPage = pathname === "/login"
 
-export function Layout({ children }: LayoutProps) {
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <Header />
-      <main>{children}</main>
+    <div className="min-h-screen">
+      {!isLoginPage && <Header />}
+      <main className={isLoginPage ? "" : "py-8"}>{children}</main>
     </div>
   )
 }

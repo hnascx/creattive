@@ -21,7 +21,7 @@ export interface ProductInput {
   price: number
   expiryDate: string
   categoryIds: string[]
-  imageUrl?: string
+  imageUrl: string
 }
 
 export interface PaginatedResponse<T> {
@@ -38,9 +38,10 @@ export interface PaginatedResponse<T> {
 }
 
 export const productService = {
-  async list() {
-    const response = await api.get<PaginatedResponse<Product>>("/products")
-    console.log("Resposta da listagem:", response.data)
+  async list(params?: { search?: string }) {
+    const response = await api.get<PaginatedResponse<Product>>("/products", {
+      params,
+    })
     return {
       items: response.data.data,
       total: response.data.pagination.total,
@@ -48,6 +49,7 @@ export const productService = {
   },
 
   async create(data: ProductInput) {
+    console.log("Dados enviados para criação:", data) // Log para debug
     const response = await api.post<{ success: boolean; data: Product }>(
       "/products",
       data

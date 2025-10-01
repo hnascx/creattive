@@ -1,4 +1,4 @@
-import { api } from "../lib/axios"
+import { api } from "@/lib/axios"
 
 export interface Category {
   id: string
@@ -7,27 +7,35 @@ export interface Category {
   updatedAt: string
 }
 
-export interface CategoryInput {
-  name: string
-}
-
 export const categoryService = {
-  async list() {
-    const response = await api.get<{ success: true, data: Category[] }>('/categories')
+  async list(params?: { search?: string }) {
+    const response = await api.get<{ success: boolean; data: Category[] }>(
+      "/categories",
+      {
+        params,
+      }
+    )
     return response.data.data
   },
 
-  async create(data: CategoryInput) {
-    const response = await api.post<{ success: true, data: Category }>('/categories', data)
+  async create(data: { name: string }) {
+    const response = await api.post<{ success: boolean; data: Category }>(
+      "/categories",
+      data
+    )
     return response.data.data
   },
 
-  async update(id: string, data: CategoryInput) {
-    const response = await api.put<{ success: true, data: Category }>(`/categories/${id}`, data)
+  async update(id: string, data: { name: string }) {
+    const response = await api.put<{ success: boolean; data: Category }>(
+      `/categories/${id}`,
+      data
+    )
     return response.data.data
   },
 
   async delete(id: string) {
-    await api.delete(`/categories/${id}`)
-  }
+    const response = await api.delete<{ success: boolean }>(`/categories/${id}`)
+    return response.data.success
+  },
 }

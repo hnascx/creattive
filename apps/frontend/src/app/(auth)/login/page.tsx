@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuthContext } from "@/providers/auth-provider"
+import { Loader2 } from "lucide-react"
+import Image from "next/image"
 import { FormEvent, useState } from "react"
 import { toast } from "sonner"
 
@@ -17,6 +19,8 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
+      // Adicionar timeout de 2 segundos
+      await new Promise((resolve) => setTimeout(resolve, 2000))
       await login(username, password)
       toast.success("Login realizado com sucesso")
     } catch (error) {
@@ -27,15 +31,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-14">
       <div className="w-full max-w-sm space-y-8 p-8 border rounded-lg shadow-lg">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">Login</h2>
-          <p className="text-gray-600">Entre com suas credenciais</p>
+        <div className="text-center space-y-6">
+          <Image
+            src="/creattive-logo.png"
+            alt="Creattive Logo"
+            width={200}
+            height={200}
+            className="mx-auto"
+            priority
+          />
+          <div>
+            <h2 className="text-2xl font-bold">Login</h2>
+            <p className="mt-2">Faça login abaixo com as suas credenciais</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <label htmlFor="username" className="block text-sm font-medium">
               Usuário
             </label>
@@ -48,7 +62,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <label htmlFor="password" className="block text-sm font-medium">
               Senha
             </label>
@@ -61,8 +75,15 @@ export default function LoginPage() {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Entrando..." : "Entrar"}
+          <Button type="submit" className="w-full mt-2" disabled={loading}>
+            {loading ? (
+              <div className="flex items-center gap-2">
+                Entrando
+                <Loader2 className="h-4 w-4 animate-spin" />
+              </div>
+            ) : (
+              "Entrar"
+            )}
           </Button>
         </form>
       </div>
