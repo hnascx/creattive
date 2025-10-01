@@ -1,5 +1,10 @@
+import { ProtectedRoute } from "../components/auth/protected-route";
 import { Homepage } from "../templates/homepage";
 
 export default function Home() {
-  return <Homepage />
+  return (
+    <ProtectedRoute>
+      <Homepage />
+    </ProtectedRoute>
+  )
 }

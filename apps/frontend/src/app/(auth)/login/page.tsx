@@ -2,33 +2,22 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { api } from "@/lib/axios"
-import { useRouter } from "next/navigation"
+import { useAuthContext } from "@/providers/auth-provider"
 import { FormEvent, useState } from "react"
 import { toast } from "sonner"
 
 export default function LoginPage() {
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const { login } = useAuthContext()
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setLoading(true)
 
-    const formData = new FormData(e.currentTarget)
-    const username = formData.get("username")
-    const password = formData.get("password")
-
     try {
-      const response = await api.post("/auth/login", {
-        username,
-        password,
-      })
-
-      localStorage.setItem("token", response.data.data.token)
-      router.push("/")
-      router.refresh()
-
+      await login(username, password)
       toast.success("Login realizado com sucesso")
     } catch (error) {
       toast.error("Usuário ou senha inválidos")
@@ -38,37 +27,37 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-md p-8 space-y-6 rounded-lg shadow-lg">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">Login</h1>
-          <p className="text-gray-500">Entre com suas credenciais</p>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="w-full max-w-sm space-y-8 p-8 border rounded-lg shadow-lg">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Login</h2>
+          <p className="text-gray-600">Entre com suas credenciais</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="username" className="text-sm font-medium">
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium">
               Usuário
             </label>
             <Input
               id="username"
-              name="username"
               type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
-              defaultValue="admin"
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium">
               Senha
             </label>
             <Input
               id="password"
-              name="password"
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
-              defaultValue="admin123"
             />
           </div>
 
