@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import { Layout } from "../components/layout"
 import "./styles/globals.css"
+import { Toaster } from "sonner"
 
 export const metadata: Metadata = {
   title: "Creattive | Gerenciamento de produtos",
@@ -23,6 +24,12 @@ export default function RootLayout({
           disableTransitionOnChange={false}
         >
           <Layout>{children}</Layout>
+          <Toaster 
+            position="bottom-right" 
+            expand={false} 
+            richColors 
+            closeButton
+          />
         </ThemeProvider>
       </body>
     </html>

@@ -1,3 +1,6 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -6,46 +9,78 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ActionButtons } from "../action-buttons"
-
-const products = [
-  {
-    id: 1,
-    name: "Categoria 1",
-  },
-  {
-    id: 2,
-    name: "Categoria 2",
-  },
-  {
-    id: 3,
-    name: "Categoria 3",
-  },
-  {
-    id: 4,
-    name: "Categoria 4",
-  },
-  {
-    id: 5,
-    name: "Categoria 5",
-  },
-]
+import { Category, categoryService } from "@/services/category.service"
+import { Trash2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { CategoryDialog } from "../category-dialog"
 
 export function CategoryList() {
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadCategories()
+  }, [])
+
+  async function loadCategories() {
+    try {
+      const data = await categoryService.list()
+      setCategories(data)
+    } catch (error) {
+      toast.error("Erro ao carregar categorias")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      await categoryService.delete(id)
+      toast.success("Categoria excluída com sucesso")
+      await loadCategories()
+    } catch (error) {
+      toast.error("Erro ao excluir categoria")
+    }
+  }
+
+  if (loading) {
+    return <div>Carregando...</div>
+  }
+
   return (
-    <div>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Categorias</h2>
+        <CategoryDialog onSuccess={loadCategories} mode="create" />
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Categorias</TableHead>
+            <TableHead>Nome</TableHead>
+            <TableHead className="w-[100px] text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products.map((product, index) => (
-            <TableRow key={index} className="flex flex-row justify-between">
-              <TableCell className="py-4">{product.name}</TableCell>
-              <TableCell>
-                <ActionButtons />
+          {categories.map((category) => (
+            <TableRow key={category.id}>
+              <TableCell>{category.name}</TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  <CategoryDialog
+                    category={category}
+                    onSuccess={loadCategories}
+                    mode="edit"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(category.id)}
+                  >
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
