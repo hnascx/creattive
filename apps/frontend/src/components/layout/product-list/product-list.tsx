@@ -20,8 +20,6 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { ProductDialog } from "../product-dialog"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
-
 export function ProductList() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
