@@ -16,6 +16,7 @@ import {
   ProductInput,
   productService,
 } from "@/services/product.service"
+import Cookies from "js-cookie"
 import { Loader2 } from "lucide-react"
 import Image from "next/image"
 import { FormEvent, useEffect, useState } from "react"
@@ -136,10 +137,15 @@ export function ProductForm({
         const formData = new FormData()
         formData.append("file", imageFile)
 
+        const token = Cookies.get("token")
+        if (!token) {
+          throw new Error("Usuário não autenticado")
+        }
+
         const response = await fetch(`${API_URL}/upload`, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
           body: formData,
         })

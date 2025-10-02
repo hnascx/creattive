@@ -19,6 +19,8 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { ProductDialog } from "../product-dialog"
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
+
 export function ProductList() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -69,7 +71,7 @@ export function ProductList() {
 
   function getImageUrl(imagePath: string | undefined | null) {
     if (!imagePath) return null
-    return imagePath.replace(/([^:]\/)\/+/g, "$1")
+    return imagePath
   }
 
   function truncateText(text: string, limit: number) {

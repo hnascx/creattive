@@ -1,6 +1,9 @@
 import { z } from "zod"
 
-const urlSchema = z.string().url("URL inválida").optional()
+const imageUrlSchema = z
+  .string()
+  .min(1, "URL da imagem é obrigatória")
+  .optional()
 
 const expiryDateSchema = z.string().refine((date) => {
   const parsedDate = new Date(date)
@@ -29,7 +32,7 @@ export const createProductSchema = z.object({
     .array(z.string())
     .min(1, "Selecione pelo menos uma categoria")
     .max(5, "Máximo de 5 categorias permitido"),
-  imageUrl: urlSchema,
+  imageUrl: imageUrlSchema,
 })
 
 export const updateProductSchema = createProductSchema.partial()

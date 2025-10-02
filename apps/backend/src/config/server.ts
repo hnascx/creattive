@@ -15,7 +15,7 @@ export async function buildServer() {
   await fs.mkdir(uploadDir, { recursive: true })
 
   await server.register(cors, {
-    origin: [env.FRONTEND_URL],
+    origin: env.NODE_ENV === "development" ? true : [env.FRONTEND_URL],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -25,12 +25,13 @@ export async function buildServer() {
     limits: {
       fileSize: env.MAX_FILE_SIZE,
     },
-    attachFieldsToBody: false, 
+    attachFieldsToBody: false,
   })
 
   await server.register(staticFiles, {
     root: uploadDir,
     prefix: "/uploads/",
+    decorateReply: false,
   })
 
   return server

@@ -10,6 +10,12 @@ import {
   updateProductSchema,
 } from "../schemas/product.schema"
 
+function getFullImageUrl(imagePath: string | null) {
+  if (!imagePath) return null
+  if (imagePath.startsWith("http")) return imagePath
+  return `http://localhost:${env.PORT}${imagePath}`
+}
+
 export async function listProducts(
   request: FastifyRequest<{
     Querystring: {
@@ -62,6 +68,7 @@ export async function listProducts(
     success: true,
     data: products.map((product) => ({
       ...product,
+      imagePath: getFullImageUrl(product.imagePath),
       categories: product.categories.map((pc) => pc.category),
     })),
     pagination: {
@@ -103,6 +110,7 @@ export async function getProduct(
     success: true,
     data: {
       ...product,
+      imagePath: getFullImageUrl(product.imagePath),
       categories: product.categories.map((pc) => pc.category),
     },
   })
@@ -151,6 +159,7 @@ export async function createProduct(
       message: "Produto criado com sucesso",
       data: {
         ...product,
+        imagePath: getFullImageUrl(product.imagePath),
         categories: product.categories.map((pc) => pc.category),
       },
     })
@@ -238,6 +247,7 @@ export async function updateProduct(
       message: "Produto atualizado com sucesso",
       data: {
         ...product,
+        imagePath: getFullImageUrl(product.imagePath),
         categories: product.categories.map((pc) => pc.category),
       },
     })
@@ -289,8 +299,11 @@ export async function deleteProduct(
       select: { imagePath: true },
     })
 
-    if (product.imagePath) {
-      const filepath = path.join(env.UPLOAD_PATH, product.imagePath)
+    if (product.imagePath && !product.imagePath.startsWith("http")) {
+      const filepath = path.join(
+        env.UPLOAD_PATH,
+        path.basename(product.imagePath)
+      )
       await fs.unlink(filepath).catch(() => {})
     }
 

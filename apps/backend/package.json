@@ -1,44 +1,38 @@
 {
   "name": "backend",
   "version": "0.1.0",
-  "private": true,
+  "description": "",
+  "main": "index.js",
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "scripts": {
     "dev": "tsx watch src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
-    "test": "dotenv -e .env.test -- vitest",
-    "test:watch": "dotenv -e .env.test -- vitest watch",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
-    "seed": "ts-node prisma/seed.ts",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset",
-    "db:seed": "tsx prisma/seed.ts",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down"
+    "seed": "ts-node prisma/seed.ts"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "@fastify/cors": "^10.0.1",
-    "@fastify/multipart": "^9.0.1",
-    "@fastify/static": "^8.0.2",
-    "@prisma/client": "^6.2.1",
-    "bcryptjs": "^2.4.3",
-    "dotenv": "16.3.1",
-    "fastify": "^5.2.0",
+    "@fastify/cors": "^8.4.1",
+    "@fastify/jwt": "^7.2.3",
+    "@fastify/multipart": "^8.0.0",
+    "@fastify/static": "^6.12.0",
+    "@prisma/client": "^5.6.0",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.24.3",
     "jsonwebtoken": "^9.0.2",
-    "zod": "^3.24.1"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^22.10.2",
-    "@vitest/coverage-v8": "^2.1.8",
-    "@vitest/ui": "^2.1.8",
-    "prisma": "^6.2.1",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
-  }
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.9.2",
+    "prisma": "^5.6.0",
+    "ts-node": "^10.9.1",
+    "tsx": "^4.1.3",
+    "typescript": "^5.2.2"
+  },
+  "packageManager": "pnpm@10.18.0+sha512.e804f889f1cecc40d572db084eec3e4881739f8dec69c0ff10d2d1beff9a4e309383ba27b5b750059d7f4c149535b6cd0d2cb1ed3aeb739239a4284a68f40cfa"
 }

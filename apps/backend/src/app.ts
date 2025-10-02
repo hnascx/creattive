@@ -16,7 +16,13 @@ async function start() {
 
     await server.listen({ port: env.PORT, host: "0.0.0.0" })
 
-    console.log(`🚀 Server running at http://localhost:${env.PORT}`)
+    console.log("\n🚀 Aplicação iniciada com sucesso!\n")
+    console.log(`📱 Frontend: ${env.FRONTEND_URL}`)
+    console.log(`⚙️  Backend: http://localhost:${env.PORT}\n`)
+    console.log("🔐 Credenciais de acesso:")
+    console.log(`   Usuário: ${env.ADMIN_USERNAME}`)
+    console.log(`   Senha: ${env.ADMIN_PASSWORD}\n`)
+    console.log("📝 Para ver os logs: docker-compose logs -f\n")
   } catch (err) {
     console.error("❌ Error starting server:", err)
     process.exit(1)

@@ -13,7 +13,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto max-w-7xl ml-2 md:ml-0 px-1 sm:px-6 md:px-1 lg:px-9">
+      <div className="mx-auto max-w-7xl ml-2 md:mx-auto px-1 sm:px-6 md:px-1 lg:px-9">
         <div className="flex h-20 items-center justify-between">
           <Link href="/">
             <Image

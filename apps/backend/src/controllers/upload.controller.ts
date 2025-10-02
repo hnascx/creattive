@@ -35,10 +35,14 @@ export async function uploadImage(
 
         await pipeline(file.file, createWriteStream(filepath))
 
+        // Construir a URL completa
+        const baseUrl = `http://localhost:${env.PORT}`
+        const imageUrl = `${baseUrl}/uploads/${filename}`
+
         return reply.send({
           success: true,
           data: {
-            imageUrl: `/uploads/${filename}`,
+            imageUrl,
           },
         })
       }
