@@ -1,4 +1,3 @@
-// apps/frontend/src/components/layout/category-list/category-list.tsx
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -37,8 +36,6 @@ export function CategoryList() {
     try {
       setLoading(true)
       const search = searchParams.get("search") ?? undefined
-
-      // Garantir que a página seja válida
       const page = Math.max(1, currentPage)
 
       const data = await categoryService.list({
@@ -52,7 +49,6 @@ export function CategoryList() {
       setHasPrev(data.hasPrev)
       setCurrentPage(data.currentPage)
     } catch (error) {
-      console.error("Erro ao carregar categorias:", error)
       toast.error("Erro ao carregar categorias")
       setCategories([])
     } finally {
@@ -74,6 +70,11 @@ export function CategoryList() {
     return <div>Carregando...</div>
   }
 
+  // Ordenar categorias por data de atualização (mais recentes primeiro)
+  const sortedCategories = [...categories].sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  )
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -90,14 +91,14 @@ export function CategoryList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {categories.length === 0 ? (
+            {sortedCategories.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={2} className="text-center py-4">
                   Nenhuma categoria encontrada
                 </TableCell>
               </TableRow>
             ) : (
-              categories.map((category) => (
+              sortedCategories.map((category) => (
                 <TableRow key={category.id}>
                   <TableCell>{category.name}</TableCell>
                   <TableCell className="text-right">

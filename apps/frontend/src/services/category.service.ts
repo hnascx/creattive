@@ -1,4 +1,3 @@
-// apps/frontend/src/services/category.service.ts
 import { api } from "@/lib/axios"
 
 export interface Category {
@@ -28,24 +27,19 @@ interface CategoryResponse {
 export const categoryService = {
   async list(params?: { search?: string; page?: number }) {
     try {
-      // Garantir que page seja um número válido e positivo
       const page = Math.max(1, params?.page || 1)
-
-      // Construir a URL base
-      let url = "/categories"
       const queryParts = []
 
       if (params?.search) {
         queryParts.push(`search=${encodeURIComponent(params.search)}`)
       }
 
-      // Adicionar page como string simples
       queryParts.push(`page=${page}`)
 
-      // Adicionar query string se houver parâmetros
-      if (queryParts.length > 0) {
-        url += `?${queryParts.join("&")}`
-      }
+      const url =
+        queryParts.length > 0
+          ? `/categories?${queryParts.join("&")}`
+          : "/categories"
 
       const response = await api.get<CategoryResponse>(url)
 
@@ -58,12 +52,11 @@ export const categoryService = {
         currentPage: response.data.pagination.page,
       }
     } catch (error: any) {
-      console.error("Erro detalhado:", {
-        error,
-        response: error.response?.data,
-        params: params,
-      })
-      throw error
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Erro ao listar categorias"
+      throw new Error(message)
     }
   },
 

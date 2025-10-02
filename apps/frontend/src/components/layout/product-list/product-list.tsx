@@ -1,4 +1,3 @@
-// apps/frontend/src/components/layout/product-list/product-list.tsx
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -38,8 +37,6 @@ export function ProductList() {
     try {
       setLoading(true)
       const search = searchParams.get("search") ?? undefined
-
-      // Garantir que a página seja válida
       const page = Math.max(1, currentPage)
 
       const data = await productService.list({
@@ -53,7 +50,6 @@ export function ProductList() {
       setHasPrev(data.hasPrev)
       setCurrentPage(data.currentPage)
     } catch (error) {
-      console.error("Erro ao carregar produtos:", error)
       toast.error("Erro ao carregar produtos")
       setProducts([])
     } finally {
@@ -73,14 +69,22 @@ export function ProductList() {
 
   function getImageUrl(imagePath: string | undefined | null) {
     if (!imagePath) return null
-
-    // Substitui todas as ocorrências de barras duplicadas por uma única barra
     return imagePath.replace(/([^:]\/)\/+/g, "$1")
+  }
+
+  function truncateText(text: string, limit: number) {
+    if (text.length <= limit) return text
+    return text.slice(0, limit) + "..."
   }
 
   if (loading) {
     return <div>Carregando...</div>
   }
+
+  // Ordenar produtos por data de atualização (mais recentes primeiro)
+  const sortedProducts = [...products].sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  )
 
   return (
     <div className="space-y-4">
@@ -103,14 +107,14 @@ export function ProductList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.length === 0 ? (
+            {sortedProducts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-4">
                   Nenhum produto encontrado
                 </TableCell>
               </TableRow>
             ) : (
-              products.map((product) => (
+              sortedProducts.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>
                     {product.imagePath && (
@@ -124,8 +128,8 @@ export function ProductList() {
                       />
                     )}
                   </TableCell>
-                  <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.description}</TableCell>
+                  <TableCell>{truncateText(product.name, 65)}</TableCell>
+                  <TableCell>{truncateText(product.description, 65)}</TableCell>
                   <TableCell>
                     {new Intl.NumberFormat("pt-BR", {
                       style: "currency",
@@ -143,10 +147,13 @@ export function ProductList() {
                   </TableCell>
                   <TableCell>
                     {product.categories?.length > 0
-                      ? product.categories
-                          .map((c) => c.name)
-                          .filter(Boolean)
-                          .join(", ")
+                      ? truncateText(
+                          product.categories
+                            .map((c) => c.name)
+                            .filter(Boolean)
+                            .join(", "),
+                          65
+                        )
                       : "Sem categoria"}
                   </TableCell>
                   <TableCell className="text-right">

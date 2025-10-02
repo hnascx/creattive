@@ -10,6 +10,7 @@
     "test:watch": "dotenv -e .env.test -- vitest watch",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "seed": "ts-node prisma/seed.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
@@ -36,6 +37,7 @@
     "@vitest/coverage-v8": "^2.1.8",
     "@vitest/ui": "^2.1.8",
     "prisma": "^6.2.1",
+    "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }

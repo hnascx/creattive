@@ -62,19 +62,13 @@ export function ProductForm({
   function getImageUrl(imagePath: string | undefined | null) {
     if (!imagePath) return null
 
-    // Substitui todas as ocorrências de barras duplicadas por uma única barra
     return imagePath.replace(/([^:]\/)\/+/g, "$1")
   }
 
   useEffect(() => {
     if (product?.imagePath) {
       const fullImageUrl = getImageUrl(product.imagePath)
-      console.log("URL da imagem:", {
-        original: product.imagePath,
-        processed: fullImageUrl,
-      })
       setImagePreview(fullImageUrl || "")
-      // Extrair o nome do arquivo da URL
       const fileName = product.imagePath.split("/").pop() || "imagem existente"
       setExistingImageName(fileName)
     }
@@ -93,14 +87,12 @@ export function ProductForm({
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validar tipo do arquivo
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"]
     if (!allowedTypes.includes(file.type)) {
       toast.error("Tipo de arquivo não suportado. Use JPEG, PNG ou WEBP")
       return
     }
 
-    // Validar tamanho (2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error("Arquivo muito grande. Máximo de 2MB")
       return
@@ -108,15 +100,13 @@ export function ProductForm({
 
     setImageFile(file)
     const objectUrl = URL.createObjectURL(file)
-    console.log("URL do objeto criado:", objectUrl)
     setImagePreview(objectUrl)
-    setExistingImageName("") // Limpar o nome da imagem existente quando uma nova é selecionada
+    setExistingImageName("")
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
 
-    // Validações
     if (description.length < 10) {
       toast.error("A descrição deve ter no mínimo 10 caracteres")
       return
@@ -142,7 +132,6 @@ export function ProductForm({
     try {
       let imageUrl = ""
 
-      // Só tenta fazer upload se houver um arquivo selecionado
       if (imageFile) {
         const formData = new FormData()
         formData.append("file", imageFile)
@@ -160,31 +149,30 @@ export function ProductForm({
         }
 
         const uploadData = await response.json()
-        console.log("Resposta do upload:", uploadData)
 
-        if (uploadData.success && uploadData.data) {
-          imageUrl = getImageUrl(uploadData.data.imageUrl) || ""
+        if (uploadData.success && uploadData.data?.imageUrl) {
+          // Garantir que a URL seja completa
+          imageUrl = uploadData.data.imageUrl.startsWith("http")
+            ? uploadData.data.imageUrl
+            : `${API_URL}${uploadData.data.imageUrl}`
         } else {
           throw new Error("Formato de resposta do upload inválido")
         }
       } else if (product?.imagePath) {
-        imageUrl = getImageUrl(product.imagePath) || ""
+        // Garantir que a URL seja completa para imagem existente
+        imageUrl = product.imagePath.startsWith("http")
+          ? product.imagePath
+          : `${API_URL}${product.imagePath}`
       }
 
-      // Validação extra dos dados antes do envio
-      const priceValue = Number(
-        price
-          .replace(/[R$\s.]/g, "") // Remove R$, espaços e pontos
-          .replace(",", ".") // Substitui vírgula por ponto para o JavaScript entender
-      )
+      if (!imageUrl) {
+        throw new Error("Imagem é obrigatória")
+      }
+
+      const priceValue = Number(price.replace(/[R$\s.]/g, "").replace(",", "."))
 
       if (isNaN(priceValue)) {
         throw new Error("Preço inválido")
-      }
-
-      // Validar se a URL da imagem está completa
-      if (!imageUrl.startsWith("http")) {
-        throw new Error("URL da imagem inválida")
       }
 
       const productData: ProductInput = {
@@ -196,35 +184,22 @@ export function ProductForm({
         imageUrl,
       }
 
-      console.log("Dados enviados para criação:", productData)
-
       if (product) {
         setLoading(true)
         await productService.update(product.id, productData)
-
         await new Promise((resolve) => setTimeout(resolve, 2000))
         toast.success("Produto atualizado com sucesso")
-
         setLoading(false)
         onSuccess()
       } else {
         setCreating(true)
-        const response = await productService.create(productData)
-        console.log("Resposta da criação:", response)
-
+        await productService.create(productData)
         await new Promise((resolve) => setTimeout(resolve, 2000))
         toast.success("Produto criado com sucesso")
-
         setCreating(false)
         onSuccess()
       }
     } catch (error: any) {
-      console.error("Erro completo:", {
-        message: error.message,
-        response: error.response?.data,
-        data: error.response?.data?.errors,
-        status: error.response?.status,
-      })
       const message =
         error.response?.data?.message ||
         error.message ||

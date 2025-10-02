@@ -4,7 +4,7 @@ import type { AuthPayload } from "../types"
 
 export function generateToken(username: string): string {
   const options: SignOptions = {
-    expiresIn: '24h', // Hardcoded for now
+    expiresIn: '24h',
     issuer: "creattive-backend",
     audience: "creattive-frontend",
   }

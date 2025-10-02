@@ -10,10 +10,8 @@ export function useAuth() {
       const response = await api.post("/auth/login", { username, password })
       const token = response.data.data.token
 
-      // Salvar token nos cookies
-      Cookies.set("token", token, { expires: 1 }) // expira em 1 dia
+      Cookies.set("token", token, { expires: 1 })
 
-      // Configurar token no axios
       api.defaults.headers.Authorization = `Bearer ${token}`
 
       router.push("/")

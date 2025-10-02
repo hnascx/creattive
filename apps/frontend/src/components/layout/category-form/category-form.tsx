@@ -1,4 +1,3 @@
-// apps/frontend/src/components/layout/category-form/category-form.tsx
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -36,7 +35,6 @@ export function CategoryForm({
         setLoading(true)
         await categoryService.update(category.id, { name })
 
-        // Adiciona o timeout de 2 segundos antes do toast
         await new Promise((resolve) => setTimeout(resolve, 2000))
         toast.success("Categoria atualizada com sucesso")
 
@@ -46,7 +44,6 @@ export function CategoryForm({
         setCreating(true)
         await categoryService.create({ name })
 
-        // Adiciona o timeout de 2 segundos antes do toast
         await new Promise((resolve) => setTimeout(resolve, 2000))
         toast.success("Categoria criada com sucesso")
 

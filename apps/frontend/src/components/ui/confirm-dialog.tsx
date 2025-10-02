@@ -67,8 +67,8 @@ export function ConfirmDialog({
           >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Excluindo
+                <Loader2 className="h-4 w-4 animate-spin" />
               </>
             ) : (
               "Confirmar"

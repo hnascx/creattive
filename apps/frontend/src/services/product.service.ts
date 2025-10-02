@@ -1,4 +1,3 @@
-// apps/frontend/src/services/product.service.ts
 import { api } from "@/lib/axios"
 
 export interface Product {
@@ -41,24 +40,19 @@ interface ProductResponse {
 export const productService = {
   async list(params?: { search?: string; page?: number }) {
     try {
-      // Garantir que page seja um número válido e positivo
       const page = Math.max(1, params?.page || 1)
-
-      // Construir a URL base
-      let url = "/products"
       const queryParts = []
 
       if (params?.search) {
         queryParts.push(`search=${encodeURIComponent(params.search)}`)
       }
 
-      // Adicionar page como string simples
       queryParts.push(`page=${page}`)
 
-      // Adicionar query string se houver parâmetros
-      if (queryParts.length > 0) {
-        url += `?${queryParts.join("&")}`
-      }
+      const url =
+        queryParts.length > 0
+          ? `/products?${queryParts.join("&")}`
+          : "/products"
 
       const response = await api.get<ProductResponse>(url)
 
@@ -71,12 +65,11 @@ export const productService = {
         currentPage: response.data.pagination.page,
       }
     } catch (error: any) {
-      console.error("Erro detalhado:", {
-        error,
-        response: error.response?.data,
-        params: params,
-      })
-      throw error
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Erro ao listar produtos"
+      throw new Error(message)
     }
   },
 

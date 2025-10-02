@@ -13,7 +13,7 @@ export async function listCategories(
 ) {
   const search = request.query.search?.trim()
   const page = Math.max(1, parseInt(request.query.page || "1"))
-  const limit = 20 // Mesmo limite usado em produtos
+  const limit = 20 
 
   const where = search
     ? {

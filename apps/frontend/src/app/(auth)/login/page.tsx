@@ -22,7 +22,6 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // Adicionar timeout de 2 segundos
       await new Promise((resolve) => setTimeout(resolve, 2000))
       await login(username, password)
     } catch (error) {

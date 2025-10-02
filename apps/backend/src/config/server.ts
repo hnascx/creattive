@@ -23,7 +23,7 @@ export async function buildServer() {
 
   await server.register(multipart, {
     limits: {
-      fileSize: env.MAX_FILE_SIZE, // 2MB
+      fileSize: env.MAX_FILE_SIZE,
     },
     attachFieldsToBody: false, 
   })
