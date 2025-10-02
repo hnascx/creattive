@@ -8,9 +8,12 @@ import Image from "next/image"
 import { FormEvent, useState } from "react"
 import { toast } from "sonner"
 
+const DEFAULT_USERNAME = process.env.NEXT_PUBLIC_ADMIN_USERNAME || "admin"
+const DEFAULT_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin"
+
 export default function LoginPage() {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
+  const [username, setUsername] = useState(DEFAULT_USERNAME)
+  const [password, setPassword] = useState(DEFAULT_PASSWORD)
   const [loading, setLoading] = useState(false)
   const { login } = useAuthContext()
 
@@ -22,7 +25,6 @@ export default function LoginPage() {
       // Adicionar timeout de 2 segundos
       await new Promise((resolve) => setTimeout(resolve, 2000))
       await login(username, password)
-      toast.success("Login realizado com sucesso")
     } catch (error) {
       toast.error("Usuário ou senha inválidos")
     } finally {

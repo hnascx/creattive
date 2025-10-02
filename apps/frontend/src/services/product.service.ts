@@ -1,3 +1,4 @@
+// apps/frontend/src/services/product.service.ts
 import { api } from "@/lib/axios"
 
 export interface Product {
@@ -21,12 +22,12 @@ export interface ProductInput {
   price: number
   expiryDate: string
   categoryIds: string[]
-  imageUrl: string
+  imageUrl?: string
 }
 
-export interface PaginatedResponse<T> {
+interface ProductResponse {
   success: boolean
-  data: T[]
+  data: Product[]
   pagination: {
     page: number
     limit: number
@@ -38,18 +39,48 @@ export interface PaginatedResponse<T> {
 }
 
 export const productService = {
-  async list(params?: { search?: string }) {
-    const response = await api.get<PaginatedResponse<Product>>("/products", {
-      params,
-    })
-    return {
-      items: response.data.data,
-      total: response.data.pagination.total,
+  async list(params?: { search?: string; page?: number }) {
+    try {
+      // Garantir que page seja um número válido e positivo
+      const page = Math.max(1, params?.page || 1)
+
+      // Construir a URL base
+      let url = "/products"
+      const queryParts = []
+
+      if (params?.search) {
+        queryParts.push(`search=${encodeURIComponent(params.search)}`)
+      }
+
+      // Adicionar page como string simples
+      queryParts.push(`page=${page}`)
+
+      // Adicionar query string se houver parâmetros
+      if (queryParts.length > 0) {
+        url += `?${queryParts.join("&")}`
+      }
+
+      const response = await api.get<ProductResponse>(url)
+
+      return {
+        items: response.data.data,
+        total: response.data.pagination.total,
+        totalPages: response.data.pagination.totalPages,
+        hasNext: response.data.pagination.hasNext,
+        hasPrev: response.data.pagination.hasPrev,
+        currentPage: response.data.pagination.page,
+      }
+    } catch (error: any) {
+      console.error("Erro detalhado:", {
+        error,
+        response: error.response?.data,
+        params: params,
+      })
+      throw error
     }
   },
 
   async create(data: ProductInput) {
-    console.log("Dados enviados para criação:", data) // Log para debug
     const response = await api.post<{ success: boolean; data: Product }>(
       "/products",
       data

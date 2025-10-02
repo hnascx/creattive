@@ -3,6 +3,7 @@
 
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { Pagination } from "@/components/ui/pagination"
 import {
   Table,
   TableBody,
@@ -22,17 +23,34 @@ export function CategoryList() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [hasNext, setHasNext] = useState(false)
+  const [hasPrev, setHasPrev] = useState(false)
   const searchParams = useSearchParams()
 
   useEffect(() => {
     loadCategories()
-  }, [searchParams])
+  }, [searchParams, currentPage])
 
   async function loadCategories() {
     try {
+      setLoading(true)
       const search = searchParams.get("search") ?? undefined
-      const data = await categoryService.list({ search })
-      setCategories(data)
+
+      // Garantir que a página seja válida
+      const page = Math.max(1, currentPage)
+
+      const data = await categoryService.list({
+        search,
+        page,
+      })
+
+      setCategories(data.items)
+      setTotalPages(data.totalPages)
+      setHasNext(data.hasNext)
+      setHasPrev(data.hasPrev)
+      setCurrentPage(data.currentPage)
     } catch (error) {
       console.error("Erro ao carregar categorias:", error)
       toast.error("Erro ao carregar categorias")
@@ -63,45 +81,57 @@ export function CategoryList() {
         <CategoryDialog onSuccess={loadCategories} mode="create" />
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead>Nome</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {categories.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={2} className="text-center py-4">
-                Nenhuma categoria encontrada
-              </TableCell>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Nome</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
-          ) : (
-            categories.map((category) => (
-              <TableRow key={category.id}>
-                <TableCell>{category.name}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <CategoryDialog
-                      category={category}
-                      onSuccess={loadCategories}
-                      mode="edit"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeleteId(category.id)}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
+          </TableHeader>
+          <TableBody>
+            {categories.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={2} className="text-center py-4">
+                  Nenhuma categoria encontrada
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              categories.map((category) => (
+                <TableRow key={category.id}>
+                  <TableCell>{category.name}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <CategoryDialog
+                        category={category}
+                        onSuccess={loadCategories}
+                        mode="edit"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteId(category.id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+
+        {categories.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            hasNext={hasNext}
+            hasPrev={hasPrev}
+            onPageChange={setCurrentPage}
+          />
+        )}
+      </div>
 
       <ConfirmDialog
         open={!!deleteId}

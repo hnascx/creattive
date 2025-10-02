@@ -47,13 +47,8 @@ export function ProductForm({
     return validCategories.length ? [validCategories[0].id] : []
   })
   const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState(
-    product?.imagePath
-      ? product.imagePath.startsWith("http")
-        ? product.imagePath
-        : `${API_URL}/${product.imagePath}`
-      : ""
-  )
+  const [imagePreview, setImagePreview] = useState<string>("")
+  const [existingImageName, setExistingImageName] = useState<string>("")
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [categories, setCategories] = useState<
@@ -64,10 +59,31 @@ export function ProductForm({
     loadCategories()
   }, [])
 
+  function getImageUrl(imagePath: string | undefined | null) {
+    if (!imagePath) return null
+
+    // Substitui todas as ocorrências de barras duplicadas por uma única barra
+    return imagePath.replace(/([^:]\/)\/+/g, "$1")
+  }
+
+  useEffect(() => {
+    if (product?.imagePath) {
+      const fullImageUrl = getImageUrl(product.imagePath)
+      console.log("URL da imagem:", {
+        original: product.imagePath,
+        processed: fullImageUrl,
+      })
+      setImagePreview(fullImageUrl || "")
+      // Extrair o nome do arquivo da URL
+      const fileName = product.imagePath.split("/").pop() || "imagem existente"
+      setExistingImageName(fileName)
+    }
+  }, [product])
+
   async function loadCategories() {
     try {
       const data = await categoryService.list()
-      setCategories(data)
+      setCategories(data.items)
     } catch (error) {
       toast.error("Erro ao carregar categorias")
     }
@@ -91,7 +107,10 @@ export function ProductForm({
     }
 
     setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
+    const objectUrl = URL.createObjectURL(file)
+    console.log("URL do objeto criado:", objectUrl)
+    setImagePreview(objectUrl)
+    setExistingImageName("") // Limpar o nome da imagem existente quando uma nova é selecionada
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -144,18 +163,12 @@ export function ProductForm({
         console.log("Resposta do upload:", uploadData)
 
         if (uploadData.success && uploadData.data) {
-          // Garantir que a URL seja completa
-          imageUrl = uploadData.data.imageUrl.startsWith("http")
-            ? uploadData.data.imageUrl
-            : `${API_URL}/${uploadData.data.imageUrl}`
+          imageUrl = getImageUrl(uploadData.data.imageUrl) || ""
         } else {
           throw new Error("Formato de resposta do upload inválido")
         }
       } else if (product?.imagePath) {
-        // Garantir que a URL seja completa para atualização também
-        imageUrl = product.imagePath.startsWith("http")
-          ? product.imagePath
-          : `${API_URL}/${product.imagePath}`
+        imageUrl = getImageUrl(product.imagePath) || ""
       }
 
       // Validação extra dos dados antes do envio
@@ -308,7 +321,10 @@ export function ProductForm({
 
       <div className="space-y-2">
         <label htmlFor="image">
-          Imagem<span className="ml-1 text-xs text-red-400">(Campo obrigatório)</span>
+          Imagem
+          <span className="ml-1 text-xs text-red-400">
+            {!product && "(Campo obrigatório)"}
+          </span>
         </label>
         <div className="relative flex items-center gap-2">
           <Button
@@ -320,7 +336,9 @@ export function ProductForm({
             Selecionar Arquivo
           </Button>
           <span className="text-sm text-muted-foreground mt-2">
-            {imageFile ? imageFile.name : "Nenhum arquivo selecionado"}
+            {imageFile
+              ? imageFile.name
+              : existingImageName || "Nenhum arquivo selecionado"}
           </span>
           <Input
             id="image"
@@ -339,6 +357,7 @@ export function ProductForm({
               width={100}
               height={100}
               className="rounded-md object-cover"
+              priority={false}
             />
           </div>
         )}

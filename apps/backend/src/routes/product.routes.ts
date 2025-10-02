@@ -16,7 +16,7 @@ export async function productRoutes(app: FastifyInstance) {
         querystring: {
           type: "object",
           properties: {
-            page: { type: "string", pattern: "^d+$" },
+            page: { type: "string", pattern: "^\\d+$" },
             search: { type: "string" },
           },
         },

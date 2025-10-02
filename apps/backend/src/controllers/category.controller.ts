@@ -6,11 +6,14 @@ export async function listCategories(
   request: FastifyRequest<{
     Querystring: {
       search?: string
+      page?: string
     }
   }>,
   reply: FastifyReply
 ) {
   const search = request.query.search?.trim()
+  const page = Math.max(1, parseInt(request.query.page || "1"))
+  const limit = 20 // Mesmo limite usado em produtos
 
   const where = search
     ? {
@@ -21,14 +24,31 @@ export async function listCategories(
       }
     : {}
 
-  const categories = await prisma.category.findMany({
-    where,
-    orderBy: { name: "asc" },
-  })
+  const [categories, total] = await Promise.all([
+    prisma.category.findMany({
+      where,
+      orderBy: { name: "asc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.category.count({ where }),
+  ])
+
+  const totalPages = Math.ceil(total / limit)
+  const hasNext = page < totalPages
+  const hasPrev = page > 1
 
   return reply.send({
     success: true,
     data: categories,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext,
+      hasPrev,
+    },
   })
 }
 
